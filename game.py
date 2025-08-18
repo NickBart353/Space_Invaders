@@ -15,10 +15,28 @@ pygame.display.set_caption('Space Invaders')
 clock = pygame.time.Clock()
 delta_time = 0
 running = True
+print(COLUMN_SIZE,ROW_SIZE)
 
 #player stuff
 player_x = 10
 player_y = 9
+
+#animations
+rocket_animation_list = [pygame.image.load("data/animations/rocket/rocket1.png").convert_alpha(),
+                         pygame.image.load("data/animations/rocket/rocket2.png").convert_alpha(),
+                         pygame.image.load("data/animations/rocket/rocket3.png").convert_alpha(),
+                         pygame.image.load("data/animations/rocket/rocket4.png").convert_alpha(),
+                         pygame.image.load("data/animations/rocket/rocket5.png").convert_alpha(),
+                        pygame.image.load("data/animations/rocket/rocket6.png").convert_alpha(),
+                        pygame.image.load("data/animations/rocket/rocket7.png").convert_alpha(),
+                        pygame.image.load("data/animations/rocket/rocket8.png").convert_alpha()]
+rocket_animation_counter = 0
+
+green_alien_animation_list = [pygame.image.load("data/animations/aliens/green_alien1.png").convert_alpha(),
+                              pygame.image.load("data/animations/aliens/green_alien2.png").convert_alpha()]
+last_green_alien_updated = -1
+green_alien_update_increment = 500
+green_alien_counter = 0
 
 #bullets
 bullets = []
@@ -30,7 +48,7 @@ last_shot_fired = -1
 last_alien_movement_update = pygame.time.get_ticks()
 last_alien_spawn_update = pygame.time.get_ticks()
 alien_movement_increment = 1000 #milliseconds
-alien_spawn_increment = 300 #milliseconds
+alien_spawn_increment = 3000 #milliseconds
 aliens = []
 
 while running:
@@ -43,13 +61,19 @@ while running:
 
     for alien in aliens[:]:
         alien.rect = pygame.Rect(alien.pos_x * COLUMN_SIZE, alien.pos_y * ROW_SIZE, COLUMN_SIZE, ROW_SIZE)
-        pygame.draw.rect(screen, (0, 50, 100),alien.rect)
+        match alien.name:
+            case "green":
+                screen.blit(green_alien_animation_list[green_alien_counter], (alien.pos_x * COLUMN_SIZE, alien.pos_y * ROW_SIZE))
+                if now > last_green_alien_updated + green_alien_update_increment:
+                    last_green_alien_updated = pygame.time.get_ticks()
+                    green_alien_counter = (green_alien_counter + 1) % len(green_alien_animation_list)
 
-        if now > last_alien_movement_update + alien_movement_increment:
-            last_alien_movement_update = pygame.time.get_ticks()
-            if not alien.pos_x == 14 and alien.movement_direction == "right":
+    if now > last_alien_movement_update + alien_movement_increment:
+        last_alien_movement_update = pygame.time.get_ticks()
+        for alien in aliens[:]:
+            if alien.pos_x < 14 and alien.movement_direction == "right":
                 alien.pos_x += 1
-            elif not alien.pos_x == 5 and alien.movement_direction == "left":
+            elif  alien.pos_x > 5 and alien.movement_direction == "left":
                 alien.pos_x -= 1
             elif alien.pos_x == 14 and alien.movement_direction == "right":
                 alien.pos_y += 1
@@ -71,13 +95,13 @@ while running:
 
         for alien in aliens[:]:
             if bullet.rect.colliderect(alien.rect):
-                bullets.remove(bullet)
-                aliens.remove(alien)
+                if bullet in bullets: bullets.remove(bullet)
+                if alien in aliens: aliens.remove(alien)
 
-
-
-
-    pygame.draw.rect(screen, (255,255,255), (player_x*COLUMN_SIZE,player_y*ROW_SIZE,COLUMN_SIZE, ROW_SIZE))
+    screen.blit(rocket_animation_list[rocket_animation_counter], (player_x*COLUMN_SIZE,player_y*ROW_SIZE))
+    rocket_animation_counter += 1
+    if rocket_animation_counter == len(rocket_animation_list)-1: rocket_animation_counter = 0
+    #pygame.draw.rect(screen, (255,255,255), (player_x*COLUMN_SIZE,player_y*ROW_SIZE,COLUMN_SIZE, ROW_SIZE))
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -97,6 +121,3 @@ while running:
     pygame.display.update()
 
 pygame.quit()
-
-#        for i in range(COLUMNS//4, COLUMNS-COLUMNS//4):
-            #for j in range(0, ROWS):
