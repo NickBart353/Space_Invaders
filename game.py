@@ -120,17 +120,14 @@ while running:
                     alien.movement_direction = "right"
 
         for bullet in bullets[:]:
-            bullet.rect = pygame.Rect(bullet.pos_x * COLUMN_SIZE, bullet.pos_y * ROW_SIZE, COLUMN_SIZE, ROW_SIZE)
+            bullet.rect = pygame.Rect(bullet.pos_x * COLUMN_SIZE, bullet.pos_y, COLUMN_SIZE, ROW_SIZE)
             screen.blit(bullet_animation_list[bullet.animation_counter],
-                        (bullet.pos_x * COLUMN_SIZE, bullet.pos_y * ROW_SIZE))
-            bullet.animation_counter = (bullet_animation_counter + 1) % len(bullet_animation_list)
-
-            if now > bullet.last_bullet_movement_update + bullet_movement_increment:
-                if bullet.pos_y == 0:
-                    bullets.remove(bullet)
-                else:
-                    bullet.last_bullet_movement_update = pygame.time.get_ticks()
-                    bullet.pos_y -= 1
+                                     (bullet.pos_x * COLUMN_SIZE, bullet.pos_y))
+            bullet.animation_counter += 1
+            if bullet.animation_counter == len(bullet_animation_list): bullet.animation_counter = 0
+            if bullet.pos_y <= -1 * ROW_SIZE:
+                bullets.remove(bullet)
+            bullet.pos_y -= delta_time * 600
 
             for alien in aliens[:]:
                 if bullet.rect.colliderect(alien.rect):
@@ -162,7 +159,7 @@ while running:
                     now = pygame.time.get_ticks()
                     if now > last_shot_fired + shoot_increment or last_shot_fired == -1:
                         last_shot_fired = pygame.time.get_ticks()
-                        bullets.append(Bullet(player_x, player_y - 1, pygame.time.get_ticks()))
+                        bullets.append(Bullet(player_x, (player_y - 1)*ROW_SIZE, pygame.time.get_ticks()))
                 if event.key == pygame.K_ESCAPE:
                     game_running = False
                     pause_menu = True
