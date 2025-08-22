@@ -39,3 +39,8 @@ def cog_wheel_pic():
 
 def background_pic():
     return pygame.image.load("data/background/star_background.png").convert_alpha()
+
+def heart_pics():
+    filled_heart = pygame.image.load("data/menu/heart8.png").convert_alpha()
+    empty_heart = pygame.image.load("data/menu/heart7.png").convert_alpha()
+    return filled_heart, empty_heart
