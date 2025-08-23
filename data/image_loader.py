@@ -1,5 +1,10 @@
 import pygame
 
+def transform_image(image_path):
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    return pygame.transform.scale(pygame.image.load(image_path),
+                           (screen.get_width() // 20, screen.get_height() // 10)).convert_alpha()
+
 def rocket_animation():
     rocket_animation_list = [pygame.image.load("data/animations/rocket/rocket1.png").convert_alpha(),
                              pygame.image.load("data/animations/rocket/rocket2.png").convert_alpha(),
@@ -11,10 +16,29 @@ def rocket_animation():
                              pygame.image.load("data/animations/rocket/rocket8.png").convert_alpha()]
     return rocket_animation_list
 
-def green_alien_animation():
-    green_alien_animation_list = [pygame.image.load("data/animations/aliens/green_alien1.png").convert_alpha(),
-                                  pygame.image.load("data/animations/aliens/green_alien2.png").convert_alpha()]
-    return green_alien_animation_list
+def weak_alien_animation():
+    return [transform_image("data/animations/aliens/weak_alien1.png"),
+            transform_image("data/animations/aliens/weak_alien2.png")]
+
+def medium_green_alien_animation():
+    return [transform_image("data/animations/aliens/medium_alien_green1.png"),
+            transform_image("data/animations/aliens/medium_alien_green2.png")]
+
+def medium_purp_alien_animation():
+    return [transform_image("data/animations/aliens/medium_alien_purp1.png"),
+            transform_image("data/animations/aliens/medium_alien_purp2.png")]
+
+def strong_green_alien_animation():
+    return [transform_image("data/animations/aliens/strong_alien_green1.png"),
+            transform_image("data/animations/aliens/strong_alien_green2.png")]
+
+def strong_purp_alien_animation():
+    return [transform_image("data/animations/aliens/strong_alien_purp1.png"),
+            transform_image("data/animations/aliens/strong_alien_purp2.png")]
+
+def strong_red_alien_animation():
+    return [transform_image("data/animations/aliens/strong_alien_red1.png"),
+            transform_image("data/animations/aliens/strong_alien_red2.png")]
 
 def bullet_animation():
     bullet_animation_list = [pygame.image.load("data/animations/rocket/bullet1.png").convert_alpha(),
@@ -52,3 +76,13 @@ def buttons():
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     return [pygame.transform.scale(pygame.image.load("data/menu/newer_button1.png").convert_alpha(), (screen.get_width()//20*2.3, screen.get_height()//10*1)).convert_alpha(),
             pygame.transform.scale(pygame.image.load("data/menu/newer_button2.png").convert_alpha(), (screen.get_width()//20*2.3, screen.get_height()//10*1)).convert_alpha(),]
+
+def score_border():
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    return pygame.transform.scale(pygame.image.load("data/menu/newer_button1.png").convert_alpha(),
+                                   (screen.get_width() // 20 * 5, screen.get_height() // 10 * 0.7)).convert_alpha()
+
+def ufo():
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    return [pygame.transform.scale(pygame.image.load("data/menu/ufo1.png"),(screen.get_width()//20*1.2, screen.get_height()//10*1)).convert_alpha(),
+        pygame.transform.scale(pygame.image.load("data/menu/ufo2.png"),(screen.get_width()//20*1.2, screen.get_height()//10*1)).convert_alpha()]

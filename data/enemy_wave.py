@@ -9,11 +9,11 @@ class Enemy_Wave:
 
 def init_enemy_waves():
     enemy_waves = [
-    Enemy_Wave(0, 300, 1000, 20, 1, False),
-    Enemy_Wave(1, 250, 1000, 30, 1, False),
-    Enemy_Wave(2, 200, 800, 30, 1, False),
-    Enemy_Wave(3, 250, 800, 20, 2, False),
-    Enemy_Wave(4, 250, 800, 30, 2, False),
-    Enemy_Wave(5, 300, 800, 20, 3, False),
+    Enemy_Wave(0, 30, 100, 10, 1, False),
+    Enemy_Wave(1, 250, 1000, 1, 1, False),
+    Enemy_Wave(2, 200, 800, 1, 2, False),
+    Enemy_Wave(3, 250, 800, 1, 2, False),
+    Enemy_Wave(4, 250, 800, 3, 3, False),
+    Enemy_Wave(5, 300, 800, 2, 3, False),
     Enemy_Wave(6, 250, 800, 999999, 3, False)]
     return enemy_waves
