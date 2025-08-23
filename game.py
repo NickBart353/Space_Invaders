@@ -7,6 +7,7 @@ from data.image_loader import *
 from data.enemy_wave import *
 from data.button import *
 from data.sound_loader import *
+from data.font_loader import *
 
 # <editor-fold desc="game stuff">
 pygame.display.init()
@@ -47,6 +48,11 @@ cog_wheel_icon = cog_wheel_pic()
 screen_background = background_pic()
 screen_background = pygame.transform.scale(screen_background, (screen.get_width(), screen.get_height()))
 filled_heart, empty_heart = heart_pics()
+logo = logo()
+logoDest = [COLUMN_SIZE*10-logo.get_width()//2, ROW_SIZE*3-logo.get_height()//2]
+button_list = buttons()
+#this is arbitrary and unclean but it works
+button_animation_counter_list = [0,0,0,0,0]
 # </editor-fold>
 
 # <editor-fold desc="animations">
@@ -71,6 +77,10 @@ bullet_sound, explosion_sound = get_sounds()
 explosion_sound.set_volume(0.3)
 game_over_sound = get_game_over_sound()
 mouse_over_sound = get_mouse_over_sound()
+# </editor-fold>
+
+# <editor-fold desc="font">
+font = get_font()
 # </editor-fold>
 
 # <editor-fold desc="bullets">
@@ -222,7 +232,6 @@ while running:
         pygame.display.update()
 
     if pause_menu:
-        screen.fill((55, 50, 55))
         pauseMenuRect = pygame.Rect(4 * COLUMN_SIZE,2 * ROW_SIZE,12 * COLUMN_SIZE,6 * ROW_SIZE)
 
         exitGameRect = pygame.Rect(12 * COLUMN_SIZE,6 * ROW_SIZE,2 * COLUMN_SIZE,1 * ROW_SIZE)
@@ -346,55 +355,57 @@ while running:
 
     if main_menu:
 
+        transformed_pic = pygame.transform.rotozoom(logo,0,1)
+        screen.blit(transformed_pic, (logoDest[0], logoDest[1]))
+
         start_game_rect = pygame.Rect(9 * COLUMN_SIZE, 4 * ROW_SIZE, 2 * COLUMN_SIZE, 1 * ROW_SIZE)
-        pygame.draw.rect(screen, (75, 200, 75), start_game_rect)
+        screen.blit(button_list[button_animation_counter_list[0]], (9 * COLUMN_SIZE, 4 * ROW_SIZE))
         start_game_collision = start_game_rect.collidepoint(pygame.mouse.get_pos())
+        screen.blit(font.render("Play", False, (100,255,100)), (9.3 * COLUMN_SIZE, 4.4 * ROW_SIZE))
 
-        how_to_play_rect = pygame.Rect(9 * COLUMN_SIZE, 5.5 * ROW_SIZE, 2 * COLUMN_SIZE, 1 * ROW_SIZE)
-        pygame.draw.rect(screen, (150, 75, 150), how_to_play_rect)
+        how_to_play_rect = pygame.Rect(9 * COLUMN_SIZE, 5.2 * ROW_SIZE, 2 * COLUMN_SIZE, 1 * ROW_SIZE)
+        screen.blit(button_list[button_animation_counter_list[1]],(9 * COLUMN_SIZE, 5.2 * ROW_SIZE))
         how_to_play_collision = how_to_play_rect.collidepoint(pygame.mouse.get_pos())
+        screen.blit(font.render("Help", False, (255,255,255)), (9.3 * COLUMN_SIZE, 5.6 * ROW_SIZE))
 
-        optionsRect = pygame.Rect(9 * COLUMN_SIZE,7 * ROW_SIZE,2 * COLUMN_SIZE,1 * ROW_SIZE)
-        pygame.draw.rect(screen, (150, 150, 150), optionsRect)
+        optionsRect = pygame.Rect(9 * COLUMN_SIZE,6.4 * ROW_SIZE,2 * COLUMN_SIZE,1 * ROW_SIZE)
+        screen.blit(button_list[button_animation_counter_list[2]],(9 * COLUMN_SIZE, 6.4 * ROW_SIZE))
         options_collision = optionsRect.collidepoint(pygame.mouse.get_pos())
+        screen.blit(font.render("Options", False, (255,255,255)), (9.3 * COLUMN_SIZE, 6.8 * ROW_SIZE))
 
-        exit_game_rect = pygame.Rect(9 * COLUMN_SIZE, 8.5 * ROW_SIZE, 2 * COLUMN_SIZE, 1 * ROW_SIZE)
-        pygame.draw.rect(screen, (200, 75, 75), exit_game_rect)
+        exit_game_rect = pygame.Rect(9 * COLUMN_SIZE, 7.6 * ROW_SIZE, 2 * COLUMN_SIZE, 1 * ROW_SIZE)
+        screen.blit(button_list[button_animation_counter_list[3]],(9 * COLUMN_SIZE, 7.6 * ROW_SIZE))
         exit_collision = exit_game_rect.collidepoint(pygame.mouse.get_pos())
+        screen.blit(font.render("Exit", False, (255,100,100)), (9.3 * COLUMN_SIZE, 8.0 * ROW_SIZE))
 
         if (exit_collision or start_game_collision or options_collision or how_to_play_collision) and not colliding_with_button:
             mouse_over_sound.play()
             colliding_with_button = True
         colliding_with_button = (exit_collision or start_game_collision or options_collision or how_to_play_collision)
 
-        now = pygame.time.get_ticks()
-        if now > last_green_alien_updated + green_alien_update_increment:
-            last_green_alien_updated = now
-            green_alien_counter = (green_alien_counter + 1) % len(green_alien_animation_list)
-
-        if start_game_collision:
-            screen.blit(green_alien_animation_list[green_alien_counter], (8 * COLUMN_SIZE, 4 * ROW_SIZE))
+        if start_game_collision: button_animation_counter_list[0] = 1
+        else: button_animation_counter_list[0] = 0
 
         if start_game_collision and mouse_clicked:
             main_menu = False
             game_running = True
 
-        if how_to_play_collision:
-            screen.blit(green_alien_animation_list[green_alien_counter], (8 * COLUMN_SIZE, 5.5 * ROW_SIZE))
+        if how_to_play_collision: button_animation_counter_list[1] = 1
+        else: button_animation_counter_list[1] = 0
 
         if how_to_play_collision and mouse_clicked:
             main_menu = False
             how_to_play = True
 
-        if options_collision:
-            screen.blit(green_alien_animation_list[green_alien_counter], (8 * COLUMN_SIZE, 7 * ROW_SIZE))
+        if options_collision: button_animation_counter_list[2] = 1
+        else: button_animation_counter_list[2] = 0
 
         if options_collision and mouse_clicked:
             main_menu = False
             options_menu = True
 
-        if exit_collision:
-            screen.blit(green_alien_animation_list[green_alien_counter], (8 * COLUMN_SIZE, 8.5 * ROW_SIZE))
+        if exit_collision: button_animation_counter_list[3] = 1
+        else: button_animation_counter_list[3] = 0
 
         if exit_collision and mouse_clicked:
             main_menu = False

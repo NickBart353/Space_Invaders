@@ -44,3 +44,11 @@ def heart_pics():
     filled_heart = pygame.image.load("data/menu/heart8.png").convert_alpha()
     empty_heart = pygame.image.load("data/menu/heart7.png").convert_alpha()
     return filled_heart, empty_heart
+
+def logo():
+    return pygame.image.load("data/background/logo.png").convert_alpha()
+
+def buttons():
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    return [pygame.transform.scale(pygame.image.load("data/menu/newer_button1.png").convert_alpha(), (screen.get_width()//20*2.3, screen.get_height()//10*1)).convert_alpha(),
+            pygame.transform.scale(pygame.image.load("data/menu/newer_button2.png").convert_alpha(), (screen.get_width()//20*2.3, screen.get_height()//10*1)).convert_alpha(),]
