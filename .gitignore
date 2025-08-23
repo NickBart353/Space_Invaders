@@ -1,4 +1,4 @@
 /.idea
 /data/__pycache__
+/data/data.txt
 .gitignore
-.gitattributes

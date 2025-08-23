@@ -563,6 +563,15 @@ while running:
         #resolution
         #keybinds???? maybe later
 
+        headline_dest = [6.3 * COLUMN_SIZE, 5 * ROW_SIZE]
+        first_line_dest = [6.3 * COLUMN_SIZE, 5 * ROW_SIZE]
+        second_line_dest = [6.3 * COLUMN_SIZE, 6 * ROW_SIZE]
+        third_line_dest = [6.3 * COLUMN_SIZE, 7 * ROW_SIZE]
+
+        screen.blit(menu_button_font.render("Volume:", False, (255, 255, 255)), (first_line_dest[0],first_line_dest[1]))
+        screen.blit(menu_button_font.render("Fullscreen:", False, (255, 255, 255)), (second_line_dest[0], second_line_dest[1]))
+        screen.blit(menu_button_font.render("Resolution:", False, (255, 255, 255)), (third_line_dest[0], third_line_dest[1]))
+
         if back_collision and not colliding_with_button:
             mouse_over_sound.play()
             colliding_with_button = True
