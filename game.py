@@ -1,4 +1,6 @@
 import pygame
+import json
+import os
 
 from data.alien import Alien
 from data.bullet import Bullet
@@ -8,12 +10,36 @@ from data.enemy_wave import *
 from data.sound_loader import *
 from data.font_loader import *
 
+# <editor-fold desc="data stuff">
+data = {
+    'highscore': 0,
+    'volume': 0.5,
+    'fullscreen': True,
+    'resolution': [0,0]
+}
+
+filename = 'data/data.txt'
+
+if not os.path.exists(filename):
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    with open(filename, 'w') as data_file:
+        json.dump(data, data_file)  # or [] or your default structure
+
+with open(filename, 'r') as data_file:
+    data = json.load(data_file)
+
+# </editor-fold>
+
 # <editor-fold desc="game stuff">
 pygame.display.init()
 pygame.font.init()
 pygame.mixer.init()
 
-screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+if data['fullscreen']:
+    screen = pygame.display.set_mode((data['resolution'][0],data['resolution'][1]), pygame.FULLSCREEN)
+else:
+    screen = pygame.display.set_mode((data['resolution'][0],data['resolution'][1]))
+
 ROWS, COLUMNS = 10, 20
 ROW_SIZE = screen.get_height() / ROWS
 COLUMN_SIZE = screen.get_width() / COLUMNS
@@ -89,9 +115,14 @@ ufo_animation_last_updated = -1
 
 # <editor-fold desc="sounds">
 bullet_sound, explosion_sound = get_sounds()
-explosion_sound.set_volume(0.3)
+#explosion_sound.set_volume(0.3)
 game_over_sound = get_game_over_sound()
 mouse_over_sound = get_mouse_over_sound()
+
+bullet_sound.set_volume(data['volume'])
+explosion_sound.set_volume(data['volume'])
+game_over_sound.set_volume(data['volume'])
+mouse_over_sound.set_volume(data['volume'])
 # </editor-fold>
 
 # <editor-fold desc="font">
@@ -236,7 +267,7 @@ while running:
             if alien.pos_y == player_y:
                 player_health -= 1
                 aliens.remove(alien)
-                if player_health <= 0:
+                if player_health <= 0 and score < data['highscore']:
                     game_over_sound.play()
                     aliens = []
                     bullets = []
@@ -244,10 +275,25 @@ while running:
                     player_x = 10
                     player_health = 3
                     enemies_spawned = 0
+                    score = 0
                     next_wave_animation_played = False
                     game_running = False
                     game_over = True
-
+                else:
+                    #game_over_sound.play()
+                    #FIND NEW HIGHSCORE SOUND
+                    #NEW HIGHSCORE WINDOW
+                    data['highscore'] = score
+                    aliens = []
+                    bullets = []
+                    explosion_list = []
+                    player_x = 10
+                    player_health = 3
+                    enemies_spawned = 0
+                    score = 0
+                    next_wave_animation_played = False
+                    game_running = False
+                    game_over = True
         if now > last_alien_movement_update + enemy_waves[enemy_wave_counter].alien_movement_speed:
             last_alien_movement_update = pygame.time.get_ticks()
             for alien in aliens[:]:
@@ -553,6 +599,8 @@ while running:
         transformed_pic = pygame.transform.rotozoom(logo,0,1)
         screen.blit(transformed_pic, (logoDest[0], logoDest[1]))
 
+        screen.blit(menu_button_font.render("Highscore: {}".format(data['highscore']), False, (0,0,0)), (8.7 * COLUMN_SIZE, 9.3 * ROW_SIZE))
+
         start_game_rect = pygame.Rect(9 * COLUMN_SIZE, 4 * ROW_SIZE, 2 * COLUMN_SIZE, 1 * ROW_SIZE)
         screen.blit(button_list[button_animation_counter_list[0]], (9 * COLUMN_SIZE, 4 * ROW_SIZE))
         start_game_collision = start_game_rect.collidepoint(pygame.mouse.get_pos())
@@ -621,9 +669,6 @@ while running:
         pygame.display.update()
 
     if how_to_play:
-        #transformed_pic = pygame.transform.rotozoom(logo,0,1)
-        #screen.blit(transformed_pic, (logoDest[0], logoDest[1]))
-
         back_dest = [2 * COLUMN_SIZE, 8 * ROW_SIZE]
 
         back_rect = pygame.Rect(back_dest[0],back_dest[1], 2 * COLUMN_SIZE, 1 * ROW_SIZE)
@@ -631,16 +676,6 @@ while running:
         back_collision = back_rect.collidepoint(pygame.mouse.get_pos())
         screen.blit(menu_button_font.render("Back", False, (255,255,255)), (back_dest[0] +0.3 * COLUMN_SIZE,back_dest[1] +0.4 * ROW_SIZE))
 
-        #content
-        #How to play:
-        #you play a rocket, trying to defend earth from aliens
-        #shoot to kill aliens, complete waves, get high score
-        #movement a left - d right, spacebar shoot
-        #aliens have health indicated by color
-        #survive as long as possible
-        #if aliens reach earth 3 times you lose, represented by your hearts
-        #on completing a wave you get 1 heart back, cant go above 3 hearts
-        #your highscore gets tracked, good luck beating your friends!
         headline_dest = [6.3 * COLUMN_SIZE, 2 * ROW_SIZE]
         first_line_dest = [1 * COLUMN_SIZE, 3 * ROW_SIZE]
         second_line_dest = [1 * COLUMN_SIZE, 3.5 * ROW_SIZE]
@@ -649,16 +684,18 @@ while running:
         fifth_line_dest = [1 * COLUMN_SIZE, 5 * ROW_SIZE]
         sixth_line_dest = [1 * COLUMN_SIZE, 5.5 * ROW_SIZE]
         seventh_line_dest = [1 * COLUMN_SIZE, 6 * ROW_SIZE]
+        eigth_line_dest = [1 * COLUMN_SIZE, 6.5 * ROW_SIZE]
 
         screen.blit(menu_headline_font.render("How to play Space Invaders!", False, (255, 255, 255)),(headline_dest[0], headline_dest[1]))
 
         screen.blit(text_font.render("You play a rocket, trying to defend earth from aliens!", False, (255, 255, 255)),(first_line_dest[0], first_line_dest[1]))
         screen.blit(text_font.render("Shoot to kill aliens, complete waves, get a high score!", False, (255, 255, 255)),(second_line_dest[0], second_line_dest[1]))
-        screen.blit(text_font.render("Movement: a to move left - d to move right, hold spacebar shoot!", False, (255, 255, 255)), (third_line_dest[0], third_line_dest[1]))
+        screen.blit(text_font.render("Movement: press a to move left and d to move right, hold spacebar shoot!", False, (255, 255, 255)), (third_line_dest[0], third_line_dest[1]))
         screen.blit(text_font.render("Aliens have health indicated by color:", False, (255, 255, 255)), (fourth_line_dest[0], fourth_line_dest[1]))
-        screen.blit(text_font.render("If aliens reach earth 3 times you lose", False, (255, 255, 255)), (fifth_line_dest[0], fifth_line_dest[1]))
-        screen.blit(text_font.render("On completing a wave you get 1 heart back, you can't go above 3 hearts", False, (255, 255, 255)), (sixth_line_dest[0], sixth_line_dest[1]))
-        screen.blit(text_font.render("Your highscore gets tracked, good luck beating your friends!", False, (255, 255, 255)), (seventh_line_dest[0], seventh_line_dest[1]))
+        screen.blit(text_font.render("If aliens reach earth you lose a heart.", False, (255, 255, 255)), (fifth_line_dest[0], fifth_line_dest[1]))
+        screen.blit(text_font.render("Upon reaching zero hearts you lose.", False, (255, 255, 255)), (sixth_line_dest[0], sixth_line_dest[1]))
+        screen.blit(text_font.render("On completing a wave you get 1 heart back, you can't go above 3 hearts.", False, (255, 255, 255)), (seventh_line_dest[0], seventh_line_dest[1]))
+        screen.blit(text_font.render("Your highscore gets tracked, good luck beating your friends!", False, (255, 255, 255)), (eigth_line_dest[0], eigth_line_dest[1]))
 
         screen.blit(weak_list[0], (15.8 * COLUMN_SIZE, 3 * ROW_SIZE))
         screen.blit(explosion_animation_list[0], (16 * COLUMN_SIZE, 3 * ROW_SIZE))
@@ -673,8 +710,6 @@ while running:
         screen.blit(strong_red_list[0], (8 * COLUMN_SIZE, 4.3 * ROW_SIZE))
         screen.blit(strong_purp_list[0], (9 * COLUMN_SIZE, 4.3 * ROW_SIZE))
         screen.blit(strong_green_list[0], (10 * COLUMN_SIZE, 4.3 * ROW_SIZE))
-
-
 
         if back_collision and not colliding_with_button:
             mouse_over_sound.play()
@@ -700,6 +735,9 @@ while running:
 
         delta_time = clock.tick(60) / 1000
         pygame.display.update()
+
+with open(filename, 'w') as data_file:
+    json.dump(data, data_file)
 
 pygame.quit()
 
