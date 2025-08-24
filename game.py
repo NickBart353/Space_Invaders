@@ -593,10 +593,10 @@ while running:
     if options_menu:
         transformed_pic = pygame.transform.rotozoom(logo,0,1)
         screen.blit(transformed_pic, (logoDest[0], logoDest[1]))
-        bullet_x = data['bullet_volume'] * (2 * COLUMN_SIZE) + 10.3 * COLUMN_SIZE
-        explosion_x = data['explosion_volume'] * (2 * COLUMN_SIZE) + 10.3 * COLUMN_SIZE
-        game_over_x = data['game_over_volume'] * (2 * COLUMN_SIZE) + 10.3 * COLUMN_SIZE
-        mouse_over_x = data['mouse_over_volume'] * (2 * COLUMN_SIZE) + 10.3 * COLUMN_SIZE
+        # bullet_x = data['bullet_volume'] * (2 * COLUMN_SIZE) + 10.3 * COLUMN_SIZE
+        # explosion_x = data['explosion_volume'] * (2 * COLUMN_SIZE) + 10.3 * COLUMN_SIZE
+        # game_over_x = data['game_over_volume'] * (2 * COLUMN_SIZE) + 10.3 * COLUMN_SIZE
+        # mouse_over_x = data['mouse_over_volume'] * (2 * COLUMN_SIZE) + 10.3 * COLUMN_SIZE
 
         back_dest = [2 * COLUMN_SIZE, 8 * ROW_SIZE]
 
@@ -636,25 +636,25 @@ while running:
         if bullet_volume_clicked:
             (x,y) = pygame.mouse.get_pos()
             if 10.3 * COLUMN_SIZE < x < 12.3 * COLUMN_SIZE:
-                volume_x = x-4
+                bullet_x = x-4
             data['bullet_volume'] = (x-10.3 * COLUMN_SIZE) / (2 * COLUMN_SIZE)
             bullet_sound.set_volume(data['bullet_volume'])
         if explosion_volume_clicked:
             (x,y) = pygame.mouse.get_pos()
             if 10.3 * COLUMN_SIZE < x < 12.3 * COLUMN_SIZE:
-                volume_x = x-4
+                explosion_x = x-4
             data['explosion_volume'] = (x-10.3 * COLUMN_SIZE) / (2 * COLUMN_SIZE)
             explosion_sound.set_volume(data['explosion_volume'])
         if game_over_volume_clicked:
             (x,y) = pygame.mouse.get_pos()
             if 10.3 * COLUMN_SIZE < x < 12.3 * COLUMN_SIZE:
-                volume_x = x-4
+                game_over_x = x-4
             data['game_over_volume'] = (x-10.3 * COLUMN_SIZE) / (2 * COLUMN_SIZE)
             game_over_sound.set_volume(data['game_over_volume'])
         if mouse_over_volume_clicked:
             (x,y) = pygame.mouse.get_pos()
             if 10.3 * COLUMN_SIZE < x < 12.3 * COLUMN_SIZE:
-                volume_x = x-4
+                mouse_over_x = x-4
             data['mouse_over_volume'] = (x-10.3 * COLUMN_SIZE) / (2 * COLUMN_SIZE)
             mouse_over_sound.set_volume(data['mouse_over_volume'])
 
