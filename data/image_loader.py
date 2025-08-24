@@ -74,8 +74,8 @@ def logo():
 
 def buttons():
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
-    return [pygame.transform.scale(pygame.image.load("data/menu/newer_button1.png").convert_alpha(), (screen.get_width()//20*2.3, screen.get_height()//10*1)).convert_alpha(),
-            pygame.transform.scale(pygame.image.load("data/menu/newer_button2.png").convert_alpha(), (screen.get_width()//20*2.3, screen.get_height()//10*1)).convert_alpha(),]
+    return [pygame.transform.scale(pygame.image.load("data/menu/newer_button1.png").convert_alpha(), (screen.get_width()//20*2.7, screen.get_height()//10*1)).convert_alpha(),
+            pygame.transform.scale(pygame.image.load("data/menu/newer_button2.png").convert_alpha(), (screen.get_width()//20*2.7, screen.get_height()//10*1)).convert_alpha(),]
 
 def score_border():
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)

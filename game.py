@@ -1,4 +1,3 @@
-import pygame
 import json
 import os
 
@@ -13,7 +12,10 @@ from data.font_loader import *
 # <editor-fold desc="data stuff">
 data = {
     'highscore': 0,
-    'volume': 0.5,
+    'bullet_volume': 1,
+    'explosion_volume': 1,
+    'game_over_volume': 1,
+    'mouse_over_volume': 1,
     'fullscreen': True,
     'resolution': [0,0]
 }
@@ -65,6 +67,8 @@ player_x = 10
 player_y = 8
 player_health = 3
 shooting = False
+player_moving_left = False
+player_moving_right = False
 # </editor-fold>
 
 # <editor-fold desc="mouse stuff">
@@ -119,10 +123,18 @@ bullet_sound, explosion_sound = get_sounds()
 game_over_sound = get_game_over_sound()
 mouse_over_sound = get_mouse_over_sound()
 
-bullet_sound.set_volume(data['volume'])
-explosion_sound.set_volume(data['volume'])
-game_over_sound.set_volume(data['volume'])
-mouse_over_sound.set_volume(data['volume'])
+bullet_sound.set_volume(data['bullet_volume'])
+explosion_sound.set_volume(data['explosion_volume'])
+game_over_sound.set_volume(data['game_over_volume'])
+mouse_over_sound.set_volume(data['mouse_over_volume'])
+bullet_x = data['bullet_volume']*(2 * COLUMN_SIZE)+10.3 * COLUMN_SIZE
+explosion_x = data['explosion_volume']*(2 * COLUMN_SIZE)+10.3 * COLUMN_SIZE
+game_over_x = data['game_over_volume']*(2 * COLUMN_SIZE)+10.3 * COLUMN_SIZE
+mouse_over_x = data['mouse_over_volume']*(2 * COLUMN_SIZE)+10.3 * COLUMN_SIZE
+bullet_volume_clicked = False
+explosion_volume_clicked = False
+game_over_volume_clicked = False
+mouse_over_volume_clicked = False
 # </editor-fold>
 
 # <editor-fold desc="font">
@@ -136,7 +148,7 @@ text_font = get_text_font()
 # <editor-fold desc="bullets">
 bullets = []
 bullet_movement_increment = 100 #milliseconds
-shoot_increment = 200
+shoot_increment = 300
 last_shot_fired = -1
 # </editor-fold>
 
@@ -151,6 +163,8 @@ enemy_wave_counter = 0
 enemies_spawned = 0
 next_wave_animation_played = False
 wave_completed_animation_played = True
+difficulty_increasing_increment = 1000
+last_difficulty_increase = -1
 # </editor-fold>
 
 while running:
@@ -178,7 +192,7 @@ while running:
                 screen.blit(empty_heart, (13 * COLUMN_SIZE, 0 * ROW_SIZE))
 
         screen.blit(score_border, (6 * COLUMN_SIZE, 0 * ROW_SIZE))
-        screen.blit(score_text_font.render(f'{score:08}', False, (255,255,255)),(7 * COLUMN_SIZE, 0.15 * ROW_SIZE))
+        screen.blit(score_text_font.render(f'{score:07}', False, (255,255,255)),(6.5 * COLUMN_SIZE, 0.1 * ROW_SIZE))
 
         screen.blit(ufo_animation_list[ufo_animation_counter], (5 * COLUMN_SIZE, 0 * ROW_SIZE))
         if now > ufo_animation_last_updated + ufo_animation_increment:
@@ -194,7 +208,13 @@ while running:
             colliding_with_button = True
         colliding_with_button = cog_collision
 
-        screen.blit(rocket_animation_list[rocket_animation_counter], (player_x * COLUMN_SIZE, player_y * ROW_SIZE))
+        if player_moving_left and player_x > 5:
+            player_x -= 4 * delta_time
+
+        if player_moving_right and player_x < 14:
+            player_x += 4 * delta_time
+
+        screen.blit(rocket_animation_list[rocket_animation_counter], (player_x* COLUMN_SIZE, player_y * ROW_SIZE))
         rocket_animation_counter += 1
         if rocket_animation_counter == len(rocket_animation_list) - 1: rocket_animation_counter = 0
 
@@ -208,7 +228,7 @@ while running:
                 screen.blit(screen_background, (0, 0))
                 wave_no = enemy_waves[enemy_wave_counter].wave_number + 1
                 wave_text_color = pygame.Color((255, 255, 255))
-                if wave_no == 7:
+                if wave_no == 6:
                     wave_no = "HAAHAHAHAHAHAHAHAHAHAAHA"
                     wave_text_color = pygame.Color((255, 75, 100))
                 screen.blit(enemy_wave_font.render("Wave {}".format(wave_no), False, wave_text_color), (9 * COLUMN_SIZE, 4 * ROW_SIZE))
@@ -226,6 +246,12 @@ while running:
             game_running = False
             pause_menu = True
 
+        if now > difficulty_increasing_increment + last_difficulty_increase:
+            last_difficulty_increase = now
+            if enemy_waves[enemy_wave_counter].alien_spawn_speed > 500:
+                enemy_waves[enemy_wave_counter].alien_spawn_speed -= enemy_waves[enemy_wave_counter].difficulty_increase
+            enemy_waves[enemy_wave_counter].alien_movement_speed += enemy_waves[enemy_wave_counter].difficulty_increase
+
         if (now > last_alien_spawn_update + enemy_waves[enemy_wave_counter].alien_spawn_speed) and enemies_spawned < enemy_waves[enemy_wave_counter].alien_amount:
             last_alien_spawn_update = pygame.time.get_ticks()
             match enemy_waves[enemy_wave_counter].alien_health:
@@ -239,12 +265,14 @@ while running:
                     alien_type = "weak"
             aliens.append(Alien(alien_type, 5, 1,enemy_waves[enemy_wave_counter].alien_health, "right"))
             enemies_spawned += 1
+            if len(aliens) == 1 and enemies_spawned == 1:
+                aliens = []
 
         if now > last_alien_animation_updated + alien_animation_increment:
             last_alien_animation_updated = pygame.time.get_ticks()
             alien_animation_counter = (alien_animation_counter + 1) % 2
 
-        for alien in aliens[:]:
+        for alien in aliens:
             alien.rect = pygame.Rect(alien.pos_x * COLUMN_SIZE, alien.pos_y * ROW_SIZE, COLUMN_SIZE, ROW_SIZE)
             match alien.name:
                 case "weak":
@@ -264,10 +292,10 @@ while running:
                         case 1:
                             screen.blit(strong_green_list[alien_animation_counter],(alien.pos_x * COLUMN_SIZE, alien.pos_y * ROW_SIZE))
 
-            if alien.pos_y == player_y:
+            if alien.pos_y >= player_y:
                 player_health -= 1
                 aliens.remove(alien)
-                if player_health <= 0 and score < data['highscore']:
+                if player_health == 0 and score < data['highscore']:
                     game_over_sound.play()
                     aliens = []
                     bullets = []
@@ -276,11 +304,12 @@ while running:
                     player_health = 3
                     enemies_spawned = 0
                     score = 0
+                    enemy_wave_counter = 0
                     next_wave_animation_played = False
                     game_running = False
                     game_over = True
-                else:
-                    #game_over_sound.play()
+                elif player_health == 0 and score > data['highscore']:
+                    game_over_sound.play()
                     #FIND NEW HIGHSCORE SOUND
                     #NEW HIGHSCORE WINDOW
                     data['highscore'] = score
@@ -291,22 +320,42 @@ while running:
                     player_health = 3
                     enemies_spawned = 0
                     score = 0
+                    enemy_wave_counter = 0
                     next_wave_animation_played = False
                     game_running = False
                     game_over = True
-        if now > last_alien_movement_update + enemy_waves[enemy_wave_counter].alien_movement_speed:
-            last_alien_movement_update = pygame.time.get_ticks()
-            for alien in aliens[:]:
-                if alien.pos_x < 14 and alien.movement_direction == "right":
-                    alien.pos_x += 1
-                elif alien.pos_x > 5 and alien.movement_direction == "left":
-                    alien.pos_x -= 1
-                elif alien.pos_x == 14 and alien.movement_direction == "right":
-                    alien.pos_y += 1
-                    alien.movement_direction = "left"
+
+        for alien in aliens:
+            if alien.pos_x < 14 and alien.movement_direction == "right":
+                alien.pos_x += 3 * delta_time
+
+            elif alien.pos_x > 5 and alien.movement_direction == "left":
+                alien.pos_x -= 3 * delta_time
+            elif alien.pos_x >= 14 and alien.movement_direction == "right":
+                if alien.previous_y_position is None or alien.previous_y_position == alien.pos_y:
+                    alien.previous_y_position = alien.pos_y
+                if alien.pos_y < (alien.previous_y_position + 1):
+                    alien.pos_y += 3 * delta_time
                 else:
-                    alien.pos_y += 1
+                    alien.movement_direction = "left"
+                    alien.previous_y_position = alien.pos_y
+            else:
+                if alien.previous_y_position is None or alien.previous_y_position == alien.pos_y:
+                    alien.previous_y_position = alien.pos_y
+                if alien.pos_y < (alien.previous_y_position + 1):
+                    alien.pos_y += 3 * delta_time
+                else:
                     alien.movement_direction = "right"
+                    alien.previous_y_position = alien.pos_y
+
+        if (enemy_waves[enemy_wave_counter].alien_amount <= enemies_spawned) and len(aliens) == 0:
+            next_wave_animation_played = False
+            enemy_wave_counter += 1
+            enemies_spawned = 0
+            bullets = []
+            explosion_list = []
+            aliens = []
+            if not player_health == 3: player_health += 1
 
         if shooting:
             now = pygame.time.get_ticks()
@@ -315,8 +364,7 @@ while running:
                 bullets.append(Bullet(player_x, (player_y - 1)*ROW_SIZE, pygame.time.get_ticks()))
                 bullet_sound.play()
 
-
-        for bullet in bullets[:]:
+        for bullet in bullets:
             bullet.rect = pygame.Rect(bullet.pos_x * COLUMN_SIZE, bullet.pos_y, COLUMN_SIZE, ROW_SIZE)
             screen.blit(bullet_animation_list[bullet.animation_counter],
                                      (bullet.pos_x * COLUMN_SIZE, bullet.pos_y))
@@ -326,7 +374,7 @@ while running:
                 bullets.remove(bullet)
             bullet.pos_y -= delta_time * 600
 
-            for alien in aliens[:]:
+            for alien in aliens:
                 if bullet.rect.colliderect(alien.rect):
                     explosion_list.append(Explosion(alien.pos_x, alien.pos_y))
                     alien.health -= 1
@@ -336,7 +384,7 @@ while running:
                         if alien in aliens: aliens.remove(alien)
                         score += 1
 
-        for explosion in explosion_list[:]:
+        for explosion in explosion_list:
             screen.blit(explosion_animation_list[explosion.animation_counter],
                         (explosion.pos_x * COLUMN_SIZE, explosion.pos_y * ROW_SIZE))
             if now > explosion.animation_last_update + explosion_animation_increment:
@@ -344,22 +392,14 @@ while running:
                 explosion.animation_counter += 1
                 if explosion.animation_counter > 3: explosion_list.remove(explosion)
 
-        if (enemy_waves[enemy_wave_counter].alien_amount <= enemies_spawned) and len(aliens) == 0:
-            next_wave_animation_played = False
-            enemy_wave_counter += 1
-            enemies_spawned = 0
-            bullets = []
-            explosion_list = []
-            if not player_health == 3: player_health += 1
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_d and player_x < 14:
-                    player_x += 1
-                if event.key == pygame.K_a and player_x > 5:
-                    player_x -= 1
+                if event.key == pygame.K_d:
+                    player_moving_right = True
+                if event.key == pygame.K_a:
+                    player_moving_left = True
                 if event.key == pygame.K_SPACE:
                     shooting = True
                 if event.key == pygame.K_ESCAPE:
@@ -368,6 +408,10 @@ while running:
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_SPACE:
                     shooting = False
+                if event.key == pygame.K_d:
+                    player_moving_right = False
+                if event.key == pygame.K_a:
+                    player_moving_left = False
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
@@ -549,6 +593,10 @@ while running:
     if options_menu:
         transformed_pic = pygame.transform.rotozoom(logo,0,1)
         screen.blit(transformed_pic, (logoDest[0], logoDest[1]))
+        bullet_x = data['bullet_volume'] * (2 * COLUMN_SIZE) + 10.3 * COLUMN_SIZE
+        explosion_x = data['explosion_volume'] * (2 * COLUMN_SIZE) + 10.3 * COLUMN_SIZE
+        game_over_x = data['game_over_volume'] * (2 * COLUMN_SIZE) + 10.3 * COLUMN_SIZE
+        mouse_over_x = data['mouse_over_volume'] * (2 * COLUMN_SIZE) + 10.3 * COLUMN_SIZE
 
         back_dest = [2 * COLUMN_SIZE, 8 * ROW_SIZE]
 
@@ -564,13 +612,51 @@ while running:
         #keybinds???? maybe later
 
         headline_dest = [6.3 * COLUMN_SIZE, 5 * ROW_SIZE]
-        first_line_dest = [6.3 * COLUMN_SIZE, 5 * ROW_SIZE]
+        first_line_dest = [9 * COLUMN_SIZE, 4 * ROW_SIZE]
         second_line_dest = [6.3 * COLUMN_SIZE, 6 * ROW_SIZE]
         third_line_dest = [6.3 * COLUMN_SIZE, 7 * ROW_SIZE]
 
         screen.blit(menu_button_font.render("Volume:", False, (255, 255, 255)), (first_line_dest[0],first_line_dest[1]))
-        screen.blit(menu_button_font.render("Fullscreen:", False, (255, 255, 255)), (second_line_dest[0], second_line_dest[1]))
-        screen.blit(menu_button_font.render("Resolution:", False, (255, 255, 255)), (third_line_dest[0], third_line_dest[1]))
+
+        screen.blit(menu_button_font.render("Bullet:", False, (255, 255, 255)),(6.3 * COLUMN_SIZE, 5 * ROW_SIZE))
+        screen.blit(menu_button_font.render("Explosion:", False, (255, 255, 255)),(6.3 * COLUMN_SIZE, 6 * ROW_SIZE))
+        screen.blit(menu_button_font.render("Game Over:", False, (255, 255, 255)),(6.3 * COLUMN_SIZE, 7 * ROW_SIZE))
+        screen.blit(menu_button_font.render("Button tick:", False, (255, 255, 255)),(6.3 * COLUMN_SIZE, 8 * ROW_SIZE))
+
+        bullet_slider = pygame.draw.rect(screen,(200,75,200),(10.3 * COLUMN_SIZE, 5 * ROW_SIZE,2 * COLUMN_SIZE, 10))
+        explosion_slider = pygame.draw.rect(screen, (200, 75, 200),(10.3 * COLUMN_SIZE, 6 * ROW_SIZE, 2 * COLUMN_SIZE, 10))
+        game_over_slider = pygame.draw.rect(screen, (200, 75, 200),(10.3 * COLUMN_SIZE, 7 * ROW_SIZE, 2 * COLUMN_SIZE, 10))
+        mouse_over_slider = pygame.draw.rect(screen, (200, 75, 200),(10.3 * COLUMN_SIZE, 8 * ROW_SIZE, 2 * COLUMN_SIZE, 10))
+
+        bullet_volume_rect = pygame.draw.rect(screen,(75,200,200),(bullet_x, 4.9 * ROW_SIZE,8,20))
+        explosion_volume_rect = pygame.draw.rect(screen, (75, 200, 200), (explosion_x, 5.9 * ROW_SIZE, 8, 20))
+        game_over_volume_rect = pygame.draw.rect(screen, (75, 200, 200), (game_over_x, 6.9 * ROW_SIZE, 8, 20))
+        mouse_over_volume_rect = pygame.draw.rect(screen, (75, 200, 200), (mouse_over_x, 7.9 * ROW_SIZE, 8, 20))
+
+        if bullet_volume_clicked:
+            (x,y) = pygame.mouse.get_pos()
+            if 10.3 * COLUMN_SIZE < x < 12.3 * COLUMN_SIZE:
+                volume_x = x-4
+            data['bullet_volume'] = (x-10.3 * COLUMN_SIZE) / (2 * COLUMN_SIZE)
+            bullet_sound.set_volume(data['bullet_volume'])
+        if explosion_volume_clicked:
+            (x,y) = pygame.mouse.get_pos()
+            if 10.3 * COLUMN_SIZE < x < 12.3 * COLUMN_SIZE:
+                volume_x = x-4
+            data['explosion_volume'] = (x-10.3 * COLUMN_SIZE) / (2 * COLUMN_SIZE)
+            explosion_sound.set_volume(data['explosion_volume'])
+        if game_over_volume_clicked:
+            (x,y) = pygame.mouse.get_pos()
+            if 10.3 * COLUMN_SIZE < x < 12.3 * COLUMN_SIZE:
+                volume_x = x-4
+            data['game_over_volume'] = (x-10.3 * COLUMN_SIZE) / (2 * COLUMN_SIZE)
+            game_over_sound.set_volume(data['game_over_volume'])
+        if mouse_over_volume_clicked:
+            (x,y) = pygame.mouse.get_pos()
+            if 10.3 * COLUMN_SIZE < x < 12.3 * COLUMN_SIZE:
+                volume_x = x-4
+            data['mouse_over_volume'] = (x-10.3 * COLUMN_SIZE) / (2 * COLUMN_SIZE)
+            mouse_over_sound.set_volume(data['mouse_over_volume'])
 
         if back_collision and not colliding_with_button:
             mouse_over_sound.play()
@@ -596,9 +682,22 @@ while running:
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     mouse_clicked = True
+                    if bullet_slider.collidepoint(pygame.mouse.get_pos()) and mouse_clicked:
+                        bullet_volume_clicked = True
+                    if explosion_slider.collidepoint(pygame.mouse.get_pos()) and mouse_clicked:
+                        explosion_volume_clicked = True
+                    if game_over_slider.collidepoint(pygame.mouse.get_pos()) and mouse_clicked:
+                        game_over_volume_clicked = True
+                    if mouse_over_slider.collidepoint(pygame.mouse.get_pos()) and mouse_clicked:
+                        mouse_over_volume_clicked = True
             if event.type == pygame.MOUSEBUTTONUP:
                 if event.button == 1:
                     mouse_clicked = False
+                    volume_clicked = False
+                    bullet_volume_clicked = False
+                    explosion_volume_clicked = False
+                    game_over_volume_clicked = False
+                    mouse_over_volume_clicked = False
 
         delta_time = clock.tick(60) / 1000
         pygame.display.update()
