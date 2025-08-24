@@ -2,3 +2,8 @@
 /data/__pycache__
 /data/data.txt
 .gitignore
+/build
+data.txt
+game.spec
+game.exe
+favicon.ico
