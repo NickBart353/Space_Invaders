@@ -1,5 +1,6 @@
 import json
 import os
+import pygame
 
 from data.alien import Alien
 from data.bullet import Bullet
@@ -8,6 +9,7 @@ from data.image_loader import *
 from data.enemy_wave import *
 from data.sound_loader import *
 from data.font_loader import *
+
 
 # <editor-fold desc="data stuff">
 data = {
@@ -86,6 +88,7 @@ logoDest = [COLUMN_SIZE*10-logo.get_width()//2, ROW_SIZE*3-logo.get_height()//2]
 button_list = buttons()
 #this is arbitrary and unclean but it works
 button_animation_counter_list = [0,0,0,0,0]
+help_background = help_background()
 # </editor-fold>
 
 # <editor-fold desc="animations">
@@ -777,11 +780,14 @@ while running:
         pygame.display.update()
 
     if how_to_play:
-        back_dest = [2 * COLUMN_SIZE, 8 * ROW_SIZE]
+        back_dest = [2 * COLUMN_SIZE, 7.5 * ROW_SIZE]
+
+        screen.blit(help_background, (-1*COLUMN_SIZE, 0*ROW_SIZE))
 
         back_rect = pygame.Rect(back_dest[0],back_dest[1], 2 * COLUMN_SIZE, 1 * ROW_SIZE)
         screen.blit(button_list[button_animation_counter_list[3]],(back_dest[0],back_dest[1]))
         back_collision = back_rect.collidepoint(pygame.mouse.get_pos())
+
         screen.blit(menu_button_font.render("Back", False, (255,255,255)), (back_dest[0] +0.3 * COLUMN_SIZE,back_dest[1] +0.4 * ROW_SIZE))
 
         headline_dest = [6.3 * COLUMN_SIZE, 2 * ROW_SIZE]
@@ -815,9 +821,9 @@ while running:
         screen.blit(filled_heart, (16 * COLUMN_SIZE, 7 * ROW_SIZE))
         screen.blit(empty_heart, (17 * COLUMN_SIZE, 7 * ROW_SIZE))
 
-        screen.blit(strong_red_list[0], (8 * COLUMN_SIZE, 4.3 * ROW_SIZE))
-        screen.blit(strong_purp_list[0], (9 * COLUMN_SIZE, 4.3 * ROW_SIZE))
-        screen.blit(strong_green_list[0], (10 * COLUMN_SIZE, 4.3 * ROW_SIZE))
+        screen.blit(strong_red_list[0], (9 * COLUMN_SIZE, 4.3 * ROW_SIZE))
+        screen.blit(strong_purp_list[0], (10 * COLUMN_SIZE, 4.3 * ROW_SIZE))
+        screen.blit(strong_green_list[0], (11 * COLUMN_SIZE, 4.3 * ROW_SIZE))
 
         if back_collision and not colliding_with_button:
             mouse_over_sound.play()

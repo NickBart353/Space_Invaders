@@ -86,3 +86,7 @@ def ufo():
     screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
     return [pygame.transform.scale(pygame.image.load("data/menu/ufo1.png"),(screen.get_width()//20*1.2, screen.get_height()//10*1)).convert_alpha(),
         pygame.transform.scale(pygame.image.load("data/menu/ufo2.png"),(screen.get_width()//20*1.2, screen.get_height()//10*1)).convert_alpha()]
+
+def help_background():
+    screen = pygame.display.set_mode((0, 0), pygame.FULLSCREEN)
+    return pygame.transform.scale(pygame.image.load("data/menu/newer_button1.png").convert_alpha(), (screen.get_width()//20*22, screen.get_height()//10*10)).convert_alpha()
